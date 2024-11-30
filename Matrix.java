@@ -1,7 +1,7 @@
 import java.util.Arrays;
 
 public class Matrix {
-    
+    //TODO: Add error catching for rounding errors
     //'struct' is the 2d matrix that stores all the values of the class
     private double[][] struct;
 
@@ -18,6 +18,11 @@ public class Matrix {
                 struct[i][j] = vectors[j].getValue(i);
             }
         }
+    }
+
+    //TODO: Maybe remove this
+    public Matrix(double[][] struct){
+        this.struct = struct;
     }
 
     public void augment(Vector b){
@@ -94,7 +99,7 @@ public class Matrix {
         }
     }
 
-    //TODO: this
+    //TODO: Finish zero row moving
     public void rref(){
         boolean[] pivotColumns = new boolean[getColumnAmount()];
 
@@ -122,27 +127,61 @@ public class Matrix {
             }
 
             //If there is a pivot, it will reduce all the values below the pivot to zero
-            //TODO: THE ISSUE IS HERE
-            int pivotRow = col;
-            for(int row=pivotRow+1; row<getRowAmount()-1;row++){
-                if(getValue(row, col)!=0){
-                    double f1 = getValue(row, col);
-                    double f2 = getValue(row, col);
+            //First we save the index of the row that contains the pivot
+            int pivotrow = col;
 
-                    double factor = -(getValue(row+1, col)/getValue(pivotRow, col));
-                    rowReplace(row+1, row, factor);
+            //We scale the pivot row so that it pivot is equal to 1
+            rowScale(pivotrow, 1/getValue(pivotrow, col));
+
+            //We iterate through all rows below the pivot row
+            for(int row=pivotrow+1; row<getRowAmount();row++){
+                if(getValue(row, col)!=0){
+                    //Find the common factor between them and use row replacement to make the position in the lower row 0
+                    double factor = -(getValue(row, col)/getValue(pivotrow, col));
+                    rowReplace(row, pivotrow, factor);
                 }
             }
         }
 
+
+        //Going back up the matrix, starting from the lowest row, reducing up
         for(int row=getRowAmount()-1;row>-1;row--){
-            boolean pivotRow = true;
+            //'pivot' will store the pivot position
+            int pivot = 0;
+            //iterates through the row to find the pivot index
             for(int col=0; col<getColumnAmount(); col++){
-                
+                if(getValue(row, col)==1.0){
+                    pivot = col;
+                }
+            }
+            //if a pivot exists, iterate through rows above to reduce them
+            if(pivot!=0){
+                for(int targetRow=row-1; targetRow>-1;targetRow--){
+                    double factor = -(getValue(targetRow, pivot)/getValue(row, pivot));
+                    rowReplace(targetRow, row, factor);
+                }
             }
         }
 
-        System.out.println(Arrays.toString(pivotColumns));
+        //This part moves all zero rows to the bottom
+        //'zeroRows' keeps track of the amount of zeroRows we have. We 1 row immediatly as it does not have to be checked as it doesn't matter whether its zero or not.
+        int zeroRows= 1;
+        for(int row=0; row<getRowAmount()-zeroRows;row++){
+            //We start off assuming each row is a row of zeros.
+            //If we find a non-zero value, make rowOfZeros false.
+            boolean rowOfZeros = true;
+            for(int col=0; col<getColumnAmount(); col++){
+                if(getValue(row, col)!= 0.0){
+                    rowOfZeros = false;
+                }
+            }
+
+            //Swaps zero rows with the lowest non-zero row.
+            //TODO:FUCK THERE'S AN ERROR BECAUSE WHAT IF THE LOWEST ROW IS A ZERO ROW????
+            if(rowOfZeros){
+                rowInterchange(row, getRowAmount()-zeroRows);
+            }
+        }
         
     }
 
