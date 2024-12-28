@@ -30,7 +30,7 @@ public class Matrix {
 
     }
 
-    //TODO: Make nicer, remove the commas and shit
+    //TODO: Make nicer, remove the commas
     public void printMatrix(){
         for (double[] row : struct) {
             System.out.println(Arrays.toString(row));
@@ -124,8 +124,35 @@ public class Matrix {
                     break;
                 }               
             }
-
         }
+
+        //This part checks if all the rows of zeros are at the bottom
+        //When the first row of zeros is hit, this boolean becomes true.
+        //If any rows below that are not full of zeros, then it is not in rref.
+        boolean rowsOfZerosHit = false;
+
+        for(int row=0; row<getRowAmount();row++){
+            //If we do not yet have a row of zeros, we iterate through rows to find one.
+            if(!rowsOfZerosHit){
+                //rowOfZerosHit is true by default. If we hit a non-zero value we switch it back false.
+                rowsOfZerosHit = true;
+                for(int col=0; col<getColumnAmount(); col++){
+                    if(getValue(row, col)!= 0.0){
+                        rowsOfZerosHit = false;
+                        break;
+                    }
+                }
+            }else{
+                //If rowOfZerosHit is true, then we check the rows below it.
+                //If we find a non-zero value we know it is not rref.
+                for(int col=0; col<getColumnAmount(); col++){
+                    if(getValue(row, col)!= 0.0){
+                        return false;
+                    }
+                }
+            }
+        }
+
 
         return true;
     }
