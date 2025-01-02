@@ -289,40 +289,36 @@ public class Matrix {
             //Base Case: If the matrix is 1x1, return the singular value
             if(getSize()==1){
                 return getValue(0, 0);
-            //Other Case: Go across the first row of the matrix and multiply each value by the adjunct matrix
+            //Other Case: Go across the first row of the matrix and multiply each value by the determinant of the sub matrix
             }else{
-                Matrix[] subDeterminants = new Matrix[getColumnAmount()];
+                //Where we store the submatrices
+                Matrix[] subMatrices = new Matrix[getColumnAmount()];
 
+                //Iterate through the top row once and get all of the sub matrices for each value
                 for(int i=0; i<getColumnAmount();i++){
                     Matrix subMatrix = new Matrix(getColumnAmount()-1, getRowAmount()-1);
 
-                    int rowCount = -1;
-                    int colCount = 0;
-
-                    for(int row=0; row<getRowAmount(); row++){
-                        colCount = 0;
-                        if(row!=i){
-                            rowCount++;
-                            for(int col=0; col<getColumnAmount(); col++){
-                                if(col!=i){
-                                    subMatrix.setValue(rowCount, colCount, getValue(row, col));
-                                    colCount ++;
-                                }
+                    for(int row=1; row<getRowAmount(); row++){
+                        int colCount = 0;
+                        for(int col=0; col<getColumnAmount(); col++){
+                            if(col!=i){
+                                subMatrix.setValue(row-1, colCount, getValue(row, col));
+                                colCount++;
                             }
                         }
-                        
                     }
 
-                    subDeterminants[i] = subMatrix;
+                    subMatrices[i] = subMatrix;
                 }
 
+                //TODO: Integrate this step into the first loop
                 double finalsum = 0;
 
                 for(int i=0; i<getColumnAmount(); i++){
                     if((i+1)%2==1){
-                        finalsum += getValue(i, i) * subDeterminants[i].determinant();
+                        finalsum += getValue(0, i) * subMatrices[i].determinant();
                     }else{
-                        finalsum -= getValue(i, i) * subDeterminants[i].determinant();
+                        finalsum -= getValue(0, i) * subMatrices[i].determinant();
                     }
                 }
 
