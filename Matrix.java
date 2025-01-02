@@ -4,6 +4,7 @@ public class Matrix {
     //TODO: Is having Matrix be a non-abstract class even useful?
     //TODO: Format all ADTs in javadoc comments
     //TODO: Make consistent formating for everything (column vs. col)
+    //TODO: Throw errors if illegal parameters given
     //'struct' is the 2d matrix that stores all the values of the class
     private double[][] struct;
 
@@ -50,6 +51,10 @@ public class Matrix {
 
     public int getRowAmount(){
         return struct.length;
+    }
+
+    public int getSize(){
+        return getColumnAmount() * getRowAmount();
     }
 
     public double getValue(int row, int column){
@@ -137,6 +142,7 @@ public class Matrix {
     public void rowScale(int row, double scale){
         for(int i=0; i<struct[row].length; i++){
             struct[row][i] *= scale;
+            //setValue(row, i, getValue(row, i)*scale);
         }
     }
 
@@ -148,9 +154,7 @@ public class Matrix {
     }
 
     /*Returns true if the matrix is in rref form, false if not */
-    //TODO: Check if rows of 0s at the bottom
     public boolean inRref(){
-
         for(int row=0; row<getRowAmount(); row++){
 
             //Iterates through each value in the row
@@ -272,6 +276,100 @@ public class Matrix {
 
             }
         }     
+    }
+
+    public boolean isSquare(){
+        return getRowAmount()==getColumnAmount();
+    }
+
+    public double determinant(){
+        if(!isSquare()){
+            throw new IllegalArgumentException("Matrix must be square");
+        }else{
+            //Base Case: If the matrix is 1x1, return the singular value
+            if(getSize()==1){
+                return getValue(0, 0);
+            //Other Case: Go across the first row of the matrix and multiply each value by the adjunct matrix
+            }else{
+                Matrix[] subDeterminants = new Matrix[getColumnAmount()];
+
+                for(int i=0; i<getColumnAmount();i++){
+                    Matrix subMatrix = new Matrix(getColumnAmount()-1, getRowAmount()-1);
+
+                    int rowCount = -1;
+                    int colCount = 0;
+
+                    for(int row=0; row<getRowAmount(); row++){
+                        colCount = 0;
+                        if(row!=i){
+                            rowCount++;
+                            for(int col=0; col<getColumnAmount(); col++){
+                                if(col!=i){
+                                    subMatrix.setValue(rowCount, colCount, getValue(row, col));
+                                    colCount ++;
+                                }
+                            }
+                        }
+                        
+                    }
+
+                    subDeterminants[i] = subMatrix;
+                }
+
+                double finalsum = 0;
+
+                for(int i=0; i<getColumnAmount(); i++){
+                    if((i+1)%2==1){
+                        finalsum += getValue(i, i) * subDeterminants[i].determinant();
+                    }else{
+                        finalsum -= getValue(i, i) * subDeterminants[i].determinant();
+                    }
+                }
+
+                return finalsum;
+            }
+        }
+    }
+
+    public void test(){
+        Matrix[] subDeterminants = new Matrix[getColumnAmount()];
+
+        for(int i=0; i<getColumnAmount();i++){
+            Matrix subMatrix = new Matrix(getColumnAmount()-1, getRowAmount()-1);
+
+            int rowCount = -1;
+            int colCount = 0;
+
+            for(int row=0; row<getRowAmount(); row++){
+                colCount = 0;
+                if(row!=i){
+                    rowCount++;
+                    for(int col=0; col<getColumnAmount(); col++){
+                        if(col!=i){
+                            subMatrix.setValue(rowCount, colCount, getValue(row, col));
+                            colCount ++;
+                        }
+                    }
+                }
+                
+            }
+
+            subDeterminants[i] = subMatrix;
+        }
+
+        for (Matrix matrix : subDeterminants) {
+            matrix.printMatrix();
+            System.out.println();
+        }
+    }
+
+    //TODO:These two
+    public boolean isInvertible(){
+        return false;
+    }
+
+    public void invert(){
+        
     }
 
     //TODO: Make this do something when there is infinitly many solutions/no solutions
