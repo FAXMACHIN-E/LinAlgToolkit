@@ -1,3 +1,5 @@
+package src.main.java;
+
 public class Vector extends Matrix{
     
     public Vector(int rows){

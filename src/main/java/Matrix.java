@@ -1,10 +1,16 @@
+package src.main.java;
+
 public class Matrix {
     //TODO: Add error catching for rounding errors
+
+    //TODO:TESTING!!!!!!!!!!!!
+    
     //TODO: Rename all i and j to row and column
-    //TODO: Is having Matrix be a non-abstract class even useful?
     //TODO: Format all ADTs in javadoc comments
-    //TODO: Make consistent formating for everything (column vs. col)
+    //TODO: Make consistent formating for everything (column vs. col) (I believe col would be better, wait, mayber colIndex, which is more clear yeah...)
     //TODO: Throw errors if illegal parameters given
+    //TODO: Beware of overcommenting
+  
     //'struct' is the 2d matrix that stores all the values of the class
     private double[][] struct;
 
@@ -126,6 +132,26 @@ public class Matrix {
         }
     }
 
+    @Override
+    public boolean equals(Object o){
+        if(o == this) return true;
+        if(!(o instanceof Matrix)) return false;
+
+        Matrix other = (Matrix)o;
+
+        if(getSize() != other.getSize()) return false;
+
+        for(int row=0; row<getRowAmount(); row++){
+            for(int col=0; col<getColumnAmount(); col++){
+                if(getValue(row, col) != other.getValue(row, col)){
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+
     /****************************************************************/
     /*** -------------- ELEMENTARY ROW OPERATIONS -------------- ***/
     /**************************************************************/
@@ -212,24 +238,24 @@ public class Matrix {
 
         //Repeat the reduction process until it is in rref
         while(!this.inRref()){
+            int foundPivots = 0;
             //the two for loops interate over the matrix, it first iterates over the column to find the pivot
             for(int col=0; col<getColumnAmount(); col++){
                 //boolean that checks if the pivot was found, starts 'false' at the beginning of each column
                 boolean pivotFound = false;
-                
+
                 //iterates over each row on and below the diagonal.
                 //we don't look above the diagonal as those are already pivot rows
-                for(int row=col; row<getRowAmount(); row++){
+                for(int row=foundPivots; row<getRowAmount(); row++){
                     //Swaps the current row with every row below it until it is non-zero
                     //When it is non zero it stops searching and breaks the loop
                     if(getValue(row, col)!= 0.0){
-                        rowInterchange(row, col);
+                        rowInterchange(row, foundPivots);
                         pivotFound = true;
+                        foundPivots++;
                         break;
                     }
                 }
-
-                //TODO: Remove the part about moving over zeros at the bottom, and replace it with if a pivot is not found in that column, move over a column.
 
                 //If there is no pivot, we end this iteration as we cannot reduce the rows below
                 if(!pivotFound){
@@ -238,14 +264,14 @@ public class Matrix {
 
                 //If there is a pivot, it will reduce all the values below the pivot to zero
                 //First we save the index of the row that contains the pivot
-                int pivotrow = col;
+                int pivotrow = foundPivots-1;
 
                 //We scale the pivot row so that it pivot is equal to 1
                 rowScale(pivotrow, 1/getValue(pivotrow, col));
 
                 //We iterate through all rows below the pivot row
                 for(int row=0; row<getRowAmount();row++){
-                    if(row!=pivotrow){
+                    if(getValue(row, col)!=0 && row!=pivotrow){
                         //Find the common factor between them and use row replacement to make the position in the lower row 0
                         double factor = -(getValue(row, col)/getValue(pivotrow, col));
                         rowReplace(row, pivotrow, factor);
@@ -255,26 +281,26 @@ public class Matrix {
 
             //This is the part that puts the rows of zeros at the bottom
             //Tracks the index of non-zero rows already moved to the top
-            int count = 0;
-            
-            for(int row=0; row<getRowAmount();row++){
-                //Start off by assuming that it is a row of zeros.
-                //If while iterating we find a non-zero value, we know it is not a row of zeros.
-                boolean rowOfZeros = true;
-                for(int col=0; col<getColumnAmount(); col++){
-                    if(getValue(row, col)!= 0.0){
-                        rowOfZeros = false;
-                        break;
-                    }
-                }
+            // int count = 0;
 
-                //If it is not a row of zeros, swap it with the top non-checked row.
-                if(!rowOfZeros){
-                    rowInterchange(row, count);
-                    count++;
-                }
+            // for(int row=0; row<getRowAmount();row++){
+            //     //Start off by assuming that it is a row of zeros.
+            //     //If while iterating we find a non-zero value, we know it is not a row of zeros.
+            //     boolean rowOfZeros = true;
+            //     for(int col=0; col<getColumnAmount(); col++){
+            //         if(getValue(row, col)!= 0.0){
+            //             rowOfZeros = false;
+            //             break;
+            //         }
+            //     }
 
-            }
+            //     //If it is not a row of zeros, swap it with the top non-checked row.
+            //     if(!rowOfZeros){
+            //         rowInterchange(row, count);
+            //         count++;
+            //     }
+
+            // }
         }     
     }
 
@@ -283,89 +309,63 @@ public class Matrix {
     }
 
     public double determinant(){
+        //Matrices must be square to take the determinant
         if(!isSquare()){
             throw new IllegalArgumentException("Matrix must be square");
         }else{
             //Base Case: If the matrix is 1x1, return the singular value
             if(getSize()==1){
                 return getValue(0, 0);
-            //Other Case: Go across the first row of the matrix and multiply each value by the determinant of the sub matrix
+            //Other Case: Go across the first row of the matrix and multiply each value by the determinant of the sub matrix and alternatingly add and subtract
             }else{
-                //Where we store the submatrices
-                Matrix[] subMatrices = new Matrix[getColumnAmount()];
+                //Where the sum of the values multiplied by submatrices will be stored
+                double finalSum = 0;
 
-                //Iterate through the top row once and get all of the sub matrices for each value
-                for(int i=0; i<getColumnAmount();i++){
+                //Iterate through each value in the top row once
+                for(int topRowIndex=0; topRowIndex<getColumnAmount();topRowIndex++){
+                    //Create a submatrix that is size (n-1)x(n-1)
                     Matrix subMatrix = new Matrix(getColumnAmount()-1, getRowAmount()-1);
 
+                    //Go across the matrix starting at the second row, because the first row will never be part of the submatrix
                     for(int row=1; row<getRowAmount(); row++){
+                        //Keeps track of the next column index to be filled within the submatrix
+                        //We can't just use col as the matrix has larger dimensions than the submatrix
                         int colCount = 0;
+
                         for(int col=0; col<getColumnAmount(); col++){
-                            if(col!=i){
+                            //If the value is in the same column as the current top row value, skip it.
+                            if(col!=topRowIndex){
+                                //1 is subtracted from row because the iteration over the rows of the matrix starts at 1 while iteration over the rows of the submatrix must go over 0
                                 subMatrix.setValue(row-1, colCount, getValue(row, col));
                                 colCount++;
                             }
                         }
                     }
 
-                    subMatrices[i] = subMatrix;
-                }
-
-                //TODO: Integrate this step into the first loop
-                double finalsum = 0;
-
-                for(int i=0; i<getColumnAmount(); i++){
-                    if((i+1)%2==1){
-                        finalsum += getValue(0, i) * subMatrices[i].determinant();
+                    //If the value of topRowIndex is odd, add to finalSum, if even, subtract.
+                    if((topRowIndex+1)%2==1){
+                        finalSum += getValue(0, topRowIndex) * subMatrix.determinant();
                     }else{
-                        finalsum -= getValue(0, i) * subMatrices[i].determinant();
+                        finalSum -= getValue(0, topRowIndex) * subMatrix.determinant();
                     }
                 }
 
-                return finalsum;
+                return finalSum;
             }
         }
     }
 
-    public void test(){
-        Matrix[] subDeterminants = new Matrix[getColumnAmount()];
-
-        for(int i=0; i<getColumnAmount();i++){
-            Matrix subMatrix = new Matrix(getColumnAmount()-1, getRowAmount()-1);
-
-            int rowCount = -1;
-            int colCount = 0;
-
-            for(int row=0; row<getRowAmount(); row++){
-                colCount = 0;
-                if(row!=i){
-                    rowCount++;
-                    for(int col=0; col<getColumnAmount(); col++){
-                        if(col!=i){
-                            subMatrix.setValue(rowCount, colCount, getValue(row, col));
-                            colCount ++;
-                        }
-                    }
-                }
-                
-            }
-
-            subDeterminants[i] = subMatrix;
-        }
-
-        for (Matrix matrix : subDeterminants) {
-            matrix.printMatrix();
-            System.out.println();
-        }
-    }
-
-    //TODO:These two
+    //TODO: This expression may be uncessary
     public boolean isInvertible(){
-        return false;
+        return determinant()!=0;
     }
 
     public void invert(){
-        
+        if(!isInvertible()){
+            throw new IllegalArgumentException("Matrix must be invertible");
+        }else{
+
+        }
     }
 
     //TODO: Make this do something when there is infinitly many solutions/no solutions
