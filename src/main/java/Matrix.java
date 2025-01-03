@@ -235,17 +235,13 @@ public class Matrix {
     }
 
     public void rref(){
-
-        //Repeat the reduction process until it is in rref
         while(!this.inRref()){
             int foundPivots = 0;
             //the two for loops interate over the matrix, it first iterates over the column to find the pivot
             for(int col=0; col<getColumnAmount(); col++){
-                //boolean that checks if the pivot was found, starts 'false' at the beginning of each column
                 boolean pivotFound = false;
 
-                //iterates over each row on and below the diagonal.
-                //we don't look above the diagonal as those are already pivot rows
+                //Iterates over rows under those that already have pivots
                 for(int row=foundPivots; row<getRowAmount(); row++){
                     //Swaps the current row with every row below it until it is non-zero
                     //When it is non zero it stops searching and breaks the loop
@@ -269,38 +265,14 @@ public class Matrix {
                 //We scale the pivot row so that it pivot is equal to 1
                 rowScale(pivotrow, 1/getValue(pivotrow, col));
 
-                //We iterate through all rows below the pivot row
                 for(int row=0; row<getRowAmount();row++){
                     if(getValue(row, col)!=0 && row!=pivotrow){
-                        //Find the common factor between them and use row replacement to make the position in the lower row 0
+                        //Make all other values in the pivot column 0
                         double factor = -(getValue(row, col)/getValue(pivotrow, col));
                         rowReplace(row, pivotrow, factor);
                     }
                 }
             }
-
-            //This is the part that puts the rows of zeros at the bottom
-            //Tracks the index of non-zero rows already moved to the top
-            // int count = 0;
-
-            // for(int row=0; row<getRowAmount();row++){
-            //     //Start off by assuming that it is a row of zeros.
-            //     //If while iterating we find a non-zero value, we know it is not a row of zeros.
-            //     boolean rowOfZeros = true;
-            //     for(int col=0; col<getColumnAmount(); col++){
-            //         if(getValue(row, col)!= 0.0){
-            //             rowOfZeros = false;
-            //             break;
-            //         }
-            //     }
-
-            //     //If it is not a row of zeros, swap it with the top non-checked row.
-            //     if(!rowOfZeros){
-            //         rowInterchange(row, count);
-            //         count++;
-            //     }
-
-            // }
         }     
     }
 
@@ -360,6 +332,7 @@ public class Matrix {
         return determinant()!=0;
     }
 
+    //TODO:Finish This
     public void invert(){
         if(!isInvertible()){
             throw new IllegalArgumentException("Matrix must be invertible");
@@ -386,8 +359,6 @@ public class Matrix {
         return null;
     }
            
-
-
 
 
 }
