@@ -6,10 +6,13 @@ public class Vector extends Matrix{
         super(rows, 1);
     }
 
-    //TODO: Make a constructor that can just take a 1D double array
-    // public Vector(double[] v){
+    public Vector(double[] v){
+        super(v.length, 1);
 
-    // }
+        for(int i=0; i<getRowAmount(); i++){
+            setValue(i, v[i]);
+        }
+    }
 
     public double getValue(int row){
         return getValue(row, 0);

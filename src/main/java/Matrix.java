@@ -4,12 +4,17 @@ public class Matrix {
     //TODO: Add error catching for rounding errors
 
     //TODO:TESTING!!!!!!!!!!!!
+    //TODO: IMPORTANT: After I get a little more done with this, I should make a project using someone elses 
+    //maven library to learn how these things are supposed to be structured
+
+    //TODO: Consult Lior
     
     //TODO: Rename all i and j to row and column
     //TODO: Format all ADTs in javadoc comments
     //TODO: Make consistent formating for everything (column vs. col) (I believe col would be better, wait, mayber colIndex, which is more clear yeah...)
     //TODO: Throw errors if illegal parameters given
     //TODO: Beware of overcommenting
+    //TODO: More explicit exceptions;
   
     //'struct' is the 2d matrix that stores all the values of the class
     private double[][] struct;
@@ -20,11 +25,22 @@ public class Matrix {
 
     /*Creates a new, empty matrix with 'rows' amount of rows and 'columns' amount of columns*/
     public Matrix(int rows, int columns){
+        if(rows==0 || columns==0){
+            throw new IllegalArgumentException("Dimensions cannot be 0");
+        }
+
         this.struct = new double[rows][columns];
     }
 
     /*Creates a matrix whose columns are the vectors provided here */
     public Matrix(Vector... vectors){
+        int vectorSize = vectors[0].getRowAmount();
+        for (Vector vector : vectors) {
+            if(vector.getRowAmount() != vectorSize){
+                throw new IllegalArgumentException("Vectors must be the same size.");
+            }
+        }
+
         this.struct = new double[vectors[0].getRowAmount()][vectors.length];
 
         for(int i=0; i<struct.length; i++){
@@ -35,7 +51,12 @@ public class Matrix {
     }
 
     /*Creates a matrix from a 1D double array */
+    //TODO:Rename this variable
     public Matrix(double[] row){
+        if(row.length==0){
+            throw new IllegalArgumentException("Matrix cannot be empty");
+        }
+        
         this.struct = new double[1][row.length];
         for(int column=0; column<row.length; column++){
             this.struct[0][column] = row[column];
@@ -44,6 +65,17 @@ public class Matrix {
 
     /*Creates a matrix from an existing 2D double array */
     public Matrix(double[][] struct){
+        if(struct.length == 0){
+            throw new IllegalArgumentException("Matrix cannot be empty");
+        }
+
+        int rowSize = struct[0].length;
+        for (double[] row : struct) {
+            if(row.length != rowSize){
+                throw new IllegalArgumentException("Rows must be the same size");
+            }
+        }
+
         this.struct = struct;
     }
 
