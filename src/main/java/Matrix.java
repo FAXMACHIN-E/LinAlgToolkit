@@ -79,6 +79,17 @@ public class Matrix {
         this.struct = struct;
     }
 
+    //TODO: Format this better maybe? Maybe child class?
+    public static Matrix identityMatrix(int dimension){
+        Matrix i = new Matrix(dimension, dimension);
+
+        for(int diagonal=0; diagonal<dimension; diagonal++){
+            i.setValue(diagonal, diagonal, 1);
+        }
+
+        return i;
+    }
+
     /**********************************************/
     /*** -------------- GETTERS -------------- ***/
     /********************************************/
@@ -175,7 +186,7 @@ public class Matrix {
 
         for(int row=0; row<getRowAmount(); row++){
             for(int col=0; col<getColumnAmount(); col++){
-                if(getValue(row, col) != other.getValue(row, col)){
+                if((getValue(row, col) - other.getValue(row, col)) >= 0.001 || (getValue(row, col) - other.getValue(row, col)) <= -0.001){
                     return false;
                 }
             }
@@ -267,7 +278,7 @@ public class Matrix {
     }
 
     public void rref(){
-        while(!this.inRref()){
+        while(!inRref()){
             int foundPivots = 0;
             //the two for loops interate over the matrix, it first iterates over the column to find the pivot
             for(int col=0; col<getColumnAmount(); col++){
@@ -369,7 +380,52 @@ public class Matrix {
         if(!isInvertible()){
             throw new IllegalArgumentException("Matrix must be invertible");
         }else{
+            Matrix identity = identityMatrix(getColumnAmount());
 
+            while(!inRref()){
+                int foundPivots = 0;
+                //the two for loops interate over the matrix, it first iterates over the column to find the pivot
+                for(int col=0; col<getColumnAmount(); col++){
+                    boolean pivotFound = false;
+    
+                    //Iterates over rows under those that already have pivots
+                    for(int row=foundPivots; row<getRowAmount(); row++){
+                        //Swaps the current row with every row below it until it is non-zero
+                        //When it is non zero it stops searching and breaks the loop
+                        if(getValue(row, col)!= 0.0){
+                            rowInterchange(row, foundPivots);
+                            identity.rowInterchange(row, foundPivots);
+                            pivotFound = true;
+                            foundPivots++;
+                            break;
+                        }
+                    }
+    
+                    //If there is no pivot, we end this iteration as we cannot reduce the rows below
+                    if(!pivotFound){
+                        continue;
+                    }
+    
+                    //If there is a pivot, it will reduce all the values below the pivot to zero
+                    //First we save the index of the row that contains the pivot
+                    int pivotrow = foundPivots-1;
+    
+                    //We scale the pivot row so that it pivot is equal to 1
+                    identity.rowScale(pivotrow, 1/getValue(pivotrow, col));
+                    rowScale(pivotrow, 1/getValue(pivotrow, col));
+    
+                    for(int row=0; row<getRowAmount();row++){
+                        if(getValue(row, col)!=0 && row!=pivotrow){
+                            //Make all other values in the pivot column 0
+                            double factor = -(getValue(row, col)/getValue(pivotrow, col));
+                            rowReplace(row, pivotrow, factor);
+                            identity.rowReplace(row, pivotrow, factor);
+                        }
+                    }
+                }
+            }   
+
+            this.struct = identity.struct;
         }
     }
 

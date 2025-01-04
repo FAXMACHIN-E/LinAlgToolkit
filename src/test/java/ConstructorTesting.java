@@ -8,7 +8,7 @@ import static org.junit.Assert.assertThrows;
 
 import src.main.java.Matrix;
 import src.main.java.Vector;
-//TODO: This deep of testing is not necessary
+
 public class ConstructorTesting {
 
     @Test
@@ -25,21 +25,24 @@ public class ConstructorTesting {
         assertThrows(IllegalArgumentException.class, () -> new Matrix(0, 0));
     }
 
-    //TODO:Finish this
     @Test
     public void testMatrixConstructorVectors(){
         Vector v1 = new Vector(new double[]{1, 2, 3});
         Vector v2 = new Vector(new double[]{4, 5, 6});
 
+        Matrix matrix = new Matrix(v1, v2);
 
-
+        assertNotNull(matrix);
+        assertEquals(1, matrix.getValue(0, 0), 0.001);
+        assertEquals(4, matrix.getValue(0, 1), 0.001);
     }
 
     @Test
     public void testMatrixConstructorVectorsInvalid(){
+        Vector v1 = new Vector(new double[]{1, 2, 3});
+        Vector v2 = new Vector(new double[]{4, 5});
 
-
-
+        assertThrows(IllegalArgumentException.class, () -> new Matrix(v1, v2));
     }
 
     @Test
@@ -89,4 +92,23 @@ public class ConstructorTesting {
         double[] m = {};
         assertThrows(IllegalArgumentException.class, () -> new Matrix(m));
     }
+
+    @Test
+    public void testVectorConstructorArray(){
+        double[] v = {0, 1, 2, 3, 4};
+        Vector vector = new Vector(v);
+
+        assertNotNull(vector);
+        for(int i=0; i<vector.getRowAmount(); i++){
+            assertEquals(i, vector.getValue(i), 0.001);
+        }
+    }
+
+    @Test
+    public void testVectorConstructorArrayInvalid(){
+        double[] v = {};
+
+        assertThrows(IllegalArgumentException.class, () -> new Vector(v));
+    }
+
 }
