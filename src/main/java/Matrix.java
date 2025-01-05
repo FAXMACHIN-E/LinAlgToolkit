@@ -3,19 +3,17 @@ package src.main.java;
 public class Matrix {
     //TODO: Add error catching for rounding errors
 
-    //TODO:TESTING!!!!!!!!!!!!
     //TODO: IMPORTANT: After I get a little more done with this, I should make a project using someone elses 
     //maven library to learn how these things are supposed to be structured
 
     //TODO: Consult Lior
     
-    //TODO: Rename all i and j to row and column
     //TODO: Format all ADTs in javadoc comments
-    //TODO: Make consistent formating for everything (column vs. col) (I believe col would be better, wait, mayber colIndex, which is more clear yeah...)
-    //TODO: Throw errors if illegal parameters given
+    //TODO: Make consistent formating for everything
     //TODO: Beware of overcommenting
     //TODO: More explicit exceptions;
   
+    //TODO:Make getRow() and getColumn() return consistent types
     //'struct' is the 2d matrix that stores all the values of the class
     private double[][] struct;
 
@@ -43,23 +41,22 @@ public class Matrix {
 
         this.struct = new double[vectors[0].getRowAmount()][vectors.length];
 
-        for(int i=0; i<struct.length; i++){
-            for(int j=0; j<struct[0].length; j++){
-                struct[i][j] = vectors[j].getValue(i);
+        for(int row=0; row<struct.length; row++){
+            for(int col=0; col<struct[0].length; col++){
+                struct[row][col] = vectors[col].getValue(row);
             }
         }
     }
 
     /*Creates a matrix from a 1D double array */
-    //TODO:Rename this variable
     public Matrix(double[] row){
         if(row.length==0){
             throw new IllegalArgumentException("Matrix cannot be empty");
         }
         
         this.struct = new double[1][row.length];
-        for(int column=0; column<row.length; column++){
-            this.struct[0][column] = row[column];
+        for(int col=0; col<row.length; col++){
+            this.struct[0][col] = row[col];
         }
     }
 
@@ -115,8 +112,8 @@ public class Matrix {
         int vectorLength = this.getRowAmount();
         Vector v = new Vector(vectorLength);
 
-        for(int i=0; i<vectorLength; i++){
-            v.setValue(i, getValue(i, columnIndex));
+        for(int row=0; row<vectorLength; row++){
+            v.setValue(row, getValue(row, columnIndex));
         }
 
         return v;
@@ -133,9 +130,7 @@ public class Matrix {
         struct[row][column] = val;
     }
 
-    
     /*Augments this matrix with the given vector */
-    //TODO: Make this output an error if the dimensions of the vector and matrix are mismatched
     public void augment(Vector b){
         double[][] originalMatrix = new double[getRowAmount()][getColumnAmount()];
 
@@ -163,26 +158,21 @@ public class Matrix {
         }
     }
 
-    /*Replaces all values in a matrix with consecutive numbers starting from 1 until the end. Left to right, top to bottom.*/
-    public void populate(){
-        int count = 1;
-
-        for(int i=0; i<getRowAmount(); i++){
-            for(int j=0; j<getColumnAmount(); j++){
-                setValue(i, j, count);
-                count++;
-            }
-        }
-    }
-
     @Override
     public boolean equals(Object o){
-        if(o == this) return true;
-        if(!(o instanceof Matrix)) return false;
+        if(o == this){
+            return true;
+        }
+
+        if(!(o instanceof Matrix)){
+            return false;
+        }
 
         Matrix other = (Matrix)o;
 
-        if(getSize() != other.getSize()) return false;
+        if(getSize() != other.getSize()){ 
+            return false;
+        }
 
         for(int row=0; row<getRowAmount(); row++){
             for(int col=0; col<getColumnAmount(); col++){
@@ -199,7 +189,6 @@ public class Matrix {
     /*** -------------- ELEMENTARY ROW OPERATIONS -------------- ***/
     /**************************************************************/
 
-    //TODO:Stop dealing with struct directly and instead use getters and setters here
     /*Input the index of 2 rows and it swaps them*/
     public void rowInterchange(int row1, int row2){
         double[] temp = struct[row2];
@@ -209,16 +198,16 @@ public class Matrix {
 
     /*Performs scalar multiplicaiton on 1 row. */
     public void rowScale(int row, double scale){
-        for(int i=0; i<struct[row].length; i++){
-            struct[row][i] *= scale;
+        for(int col=0; col<struct[row].length; col++){
+            struct[row][col] *= scale;
             //setValue(row, i, getValue(row, i)*scale);
         }
     }
 
     /*Changes the value of 'targetRow' to 'targetRow + scaledRow*scale' */
     public void rowReplace(int targetRow, int scaledRow, double scale){
-        for(int i=0; i<struct[targetRow].length; i++){
-            struct[targetRow][i] = struct[targetRow][i] + scale*struct[scaledRow][i];
+        for(int col=0; col<struct[targetRow].length; col++){
+            struct[targetRow][col] = struct[targetRow][col] + scale*struct[scaledRow][col];
         }
     }
 
@@ -370,12 +359,10 @@ public class Matrix {
         }
     }
 
-    //TODO: This expression may be uncessary
     public boolean isInvertible(){
         return determinant()!=0;
     }
 
-    //TODO:Finish This
     public void invert(){
         if(!isInvertible()){
             throw new IllegalArgumentException("Matrix must be invertible");
@@ -429,12 +416,38 @@ public class Matrix {
         }
     }
 
-    //TODO: Make this do something when there is infinitly many solutions/no solutions
-    //TODO: Make this make sense
+    public void multiply(Matrix other){
+        if(getColumnAmount() != other.getRowAmount()){
+            throw new IllegalArgumentException("Must have valid dimensions");
+        }
+
+        double[][] tempStruct = new double[getRowAmount()][other.getColumnAmount()];
+
+        for(int i=0; i<getRowAmount(); i++){
+            double[] row = getRow(i);
+            for(int j=0; j<other.getColumnAmount(); j++){
+                Vector column = other.getColumn(j); 
+                double sum = 0;
+                for(int value=0; value<row.length; value++){
+                    sum += row[value] * column.getValue(value);
+                }
+
+                tempStruct[i][j] = sum;
+            }
+        }
+
+        this.struct = tempStruct;
+    }
+
     public Vector getAnswer(){
-        //This needs to change
-        if(getColumnAmount()<=getRowAmount()){
-            return null;
+        Vector[] checkVectors = new Vector[getColumnAmount()-1];
+        for (int col=0; col<getColumnAmount()-1; col++) {
+            checkVectors[col] = getColumn(col);
+        }
+        Matrix checkMatrix = new Matrix(checkVectors);
+
+        if(!checkMatrix.isInvertible()){
+            throw new IllegalArgumentException("Matrix must be invertible");
         }
 
         Matrix tempMatrix = new Matrix(struct);
@@ -442,9 +455,18 @@ public class Matrix {
         return tempMatrix.getColumn(getColumnAmount()-1);
     }
 
-    //TODO: This
     public Vector getAnswer(Vector b){
-        return null;
+        if(!isInvertible()){
+            throw new IllegalArgumentException("Matrix must be invertible");
+        }
+
+        Matrix tempMatrix = new Matrix(struct);
+        tempMatrix.invert();
+        tempMatrix.multiply(b);
+
+        Vector output = tempMatrix.getColumn(0);
+
+        return output;
     }
            
 
