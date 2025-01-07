@@ -21,4 +21,14 @@ public class Vector extends Matrix{
     public void setValue(int row, double val){
         setValue(row, 0, val);
     }
+
+    public static boolean isLinearlyIndependent(Vector... vectors){
+        Matrix tempMatrix = new Matrix(vectors);
+        return tempMatrix.isLinearlyIndependent();
+    }
+
+    public static boolean isBasis(Vector... vectors){
+        Matrix tempMatrix = new Matrix(vectors);
+        return tempMatrix.isBasis();
+    }
 }

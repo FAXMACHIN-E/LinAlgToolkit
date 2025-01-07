@@ -1,9 +1,6 @@
 package src.main.java;
 
 public class Matrix {
-    //TODO: Add error catching for rounding errors
-
-    //TODO: IMPORTANT: After I get a little more done with this, I should make a project using someone elses 
     //maven library to learn how these things are supposed to be structured
 
     //TODO: Consult Lior
@@ -14,6 +11,7 @@ public class Matrix {
     //TODO: More explicit exceptions;
   
     //TODO:Make getRow() and getColumn() return consistent types
+    
     //'struct' is the 2d matrix that stores all the values of the class
     private double[][] struct;
 
@@ -176,6 +174,7 @@ public class Matrix {
 
         for(int row=0; row<getRowAmount(); row++){
             for(int col=0; col<getColumnAmount(); col++){
+                //Delta of 0.001 for doubles
                 if((getValue(row, col) - other.getValue(row, col)) >= 0.001 || (getValue(row, col) - other.getValue(row, col)) <= -0.001){
                     return false;
                 }
@@ -213,8 +212,9 @@ public class Matrix {
 
     /*Returns true if the matrix is in rref form, false if not */
     public boolean inRref(){
-        for(int row=0; row<getRowAmount(); row++){
+        int latestPivot = -1;
 
+        for(int row=0; row<getRowAmount(); row++){
             //Iterates through each value in the row
             for(int col=0; col<getColumnAmount(); col++){
                 //Finds the first non-zero value. If it is not 1.0, return false. Otherwise see if all other values in the pivot column are 0.
@@ -222,6 +222,13 @@ public class Matrix {
                     if(getValue(row, col) != 1.0){
                         return false;
                     }
+
+                    //Makes sure this pivot is not behind others
+                    if(col<latestPivot){
+                        return false;
+                    }
+
+                    latestPivot = col;
 
                     //If a value above or below the pivot position is not 0.0, return false.
                     for(int i=0; i<getRowAmount(); i++){
@@ -437,6 +444,32 @@ public class Matrix {
         }
 
         this.struct = tempStruct;
+    }
+
+    public boolean isLinearlyIndependent(){
+        Matrix tempMatrix = new Matrix(struct);
+
+        if(tempMatrix.getColumnAmount()>tempMatrix.getRowAmount()){
+            return false;
+        }
+
+        tempMatrix.rref();
+        for(int diagonal=0; diagonal<tempMatrix.getColumnAmount(); diagonal++){
+            if(tempMatrix.getValue(diagonal, diagonal) != 1.0){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    //TODO:Check this
+    public boolean isBasis(){
+        if(isLinearlyIndependent() && getColumnAmount()==getRowAmount()){
+            return true;
+        }
+
+        return false;
     }
 
     public Vector getAnswer(){

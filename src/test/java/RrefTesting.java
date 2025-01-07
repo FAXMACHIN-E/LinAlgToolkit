@@ -1,5 +1,6 @@
 package src.test.java;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -8,7 +9,6 @@ import org.junit.runner.RunWith;
 
 import src.main.java.Matrix;
 
-import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
@@ -17,7 +17,7 @@ import org.junit.experimental.theories.Theory;
 public class RrefTesting {
 
    @DataPoints
-   public static int[] POSSIBLE_SIZES = {1, 2, 3, 4, 5, 6};
+   public static int[] POSSIBLE_ROWS_COLS = {1, 2, 3, 4, 5, 6};
 
     @Theory
     public void testEmptyMatrices(int rows, int columns){
@@ -31,7 +31,24 @@ public class RrefTesting {
         }
     }
 
-    //TODO: Probably is a better way to combine these
+    @Theory
+    public void testEmptyPivotColumns(int row, int column){
+        Matrix matrix = new Matrix(7, 7);
+        matrix.setValue(row, column, 1.0);
+        matrix.rref();
+
+        assertEquals(1.0, matrix.getValue(0, column), 0.001);
+    }
+
+    @Test
+    public void testIncompletePivots(){
+        Matrix matrix = new Matrix(new double[][]{{0,1,0,0}, {1, 0, 0, 1}});
+        matrix.rref();
+
+        assertArrayEquals(new double[]{1, 0, 0, 1}, matrix.getRow(0), 0.001);
+        assertArrayEquals(new double[]{0, 1, 0, 0}, matrix.getRow(1), 0.001);
+    }
+
     @Test
     public void testStandardMatrix(){
         double[][] m = {
@@ -61,7 +78,7 @@ public class RrefTesting {
     }
 
     @Test
-    public void testZeroRowRref(){
+    public void testZeroRow(){
         double[][] m = {
             {1, 1, 2, 3},
             {0, 0, 1, 1},
