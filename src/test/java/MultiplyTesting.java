@@ -18,7 +18,7 @@ public class MultiplyTesting {
    public static int[] POSSIBLE_ROWS_COLS = {1, 2, 3, 4, 5, 6};
 
     @Theory
-    public void testZeroMatrixMultiplication(int rows, int columns){
+    public void testZeroVectorMultiplication(int rows, int columns){
         Matrix matrix = new Matrix(rows, columns);
         Vector vector = new Vector(columns);
 
@@ -29,8 +29,6 @@ public class MultiplyTesting {
                 count++;
             }
         }
-        System.out.println(rows);
-        System.out.println(columns);
 
         matrix.multiply(vector);
 
@@ -41,8 +39,23 @@ public class MultiplyTesting {
     }
 
     @Theory
-    public void testZeroVectorMultiplication(int rows, int columns){
+    public void testZeroMatrixMultiplication(int rows, int columns){
+        Matrix matrix = new Matrix(rows, columns);
+        Matrix empty = new Matrix(columns, rows);
 
+        int count = 0;
+        for(int i=0; i<matrix.getRowAmount(); i++){
+            for(int j=0; j<matrix.getColumnAmount(); j++){
+                matrix.setValue(i, j, count);
+                count++;
+            }
+        }
+
+        matrix.multiply(empty);
+
+        Matrix zeroMatrix = new Matrix(rows, rows);
+
+        assertTrue(matrix.equals(zeroMatrix));
     }
 
     
